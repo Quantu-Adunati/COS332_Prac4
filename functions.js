@@ -98,11 +98,79 @@ function getUser(){
 }
 
 function deleteUser(){
+    var found =false;;
+    var i =1;
+
+    if(id == null )
+    {
+        logError("Params not supplied","Please input correct id");
+        return;
+    }
+    createUserArray();
+    //clear out the file
+    fs.writeFile("user.txt","",function(err)
+    {
+        if(err)
+        console.log(err);
+    });
+
+    users.forEach(el => {
+        if(el.id != id)
+        {
+            // do not addel.id if it matches
+            fs.appendFile("user.txt",i + "-"+el.name+":"+el.number+";" , function(err) {
+                if(err) {
+                    return console.log(err);
+                }                       
+            }); 
+            i++;
+        } 
+        else 
+        {
+            found =true;
+        }
+    });
     logError("deleteUser called","");
+    if(found != true)
+    logError("User not found","That user was not found");
 }
 
 function update(){
+    var found =false;
+    var i =1;
+
+    if(name == null || number == null || name == "" || number == ""){
+        logError("Params not supplied","Please input a name and a number for the user!");
+        return;
+    }
+
+    createUserArray();
+
+    //clear out the file
+    fs.writeFile("user.txt","",function(err)
+    {
+        if(err)
+        console.log(err);
+    });
+
+    users.forEach(el => {
+        if(el.id == id)
+        {
+            el.name = name;
+            el.number = number;
+            found = true;
+        }
+        fs.appendFile("user.txt",i + "-"+el.name+":"+el.number+";" , function(err) {
+            if(err) {
+                return console.log(err);
+            }                       
+        }); 
+        i++;
+    });
+
     logError("update called","");
+    if(found != true)
+    logError("User not found","That user was not found");
 }
 
 exports.getResult = function getResult(...args)//args is an array with all our arguments
@@ -119,9 +187,15 @@ exports.getResult = function getResult(...args)//args is an array with all our a
     else if(args[0] == 3)
     getUser();
     else if(args[0] == 4)
-    deleteUser();
+    {
+        deleteUser();
+        display();
+    }   
     else if(args[0] == 5)
-    update();
+    {
+        update();
+        display();
+    }
 
 }
 
