@@ -9,8 +9,14 @@ const JMath = require('./functions');
 {
     res.writeHead(200,{'Content-type': 'text/html'});
 
+    //Call getResult in functions.js
     var queryString = url.parse(req.url, true).query;
-
+    var option = queryString.option !=null?queryString.option:null ;
+    var userid= queryString.userid !=null?queryString.userid:null ;
+    var name=queryString.name !=null?queryString.name:null;
+    var number =queryString.number !=null?queryString.number:null;
+    //console.log(option+" "+userid+" "+name+" "+number);
+    JMath.getResult(option,userid,name,number);
 
     fs.writeFile("index.html",JMath.getPage(),(err)=>{
         if(err)
@@ -22,7 +28,7 @@ const JMath = require('./functions');
     await makeCallWaitSoPageLoads(200); 
     var mrs=fs.createReadStream(__dirname+'/index.html','utf8');   
     mrs.pipe(res);
-    
+
 }).listen(2999);
 //Output on start
 console.log("Listening to port 2999. Ready to go!");
