@@ -15,7 +15,9 @@ const JMath = require('./functions');
     var userid= queryString.userid !=null?queryString.userid:null ;
     var name=queryString.name !=null?queryString.name:null;
     var number =queryString.number !=null?queryString.number:null;
+
     //console.log(option+" "+userid+" "+name+" "+number);
+    JMath.setParams(option,userid,name,number);
     JMath.getResult(option,userid,name,number);
 
     fs.writeFile("index.html",JMath.getPage(),(err)=>{

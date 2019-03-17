@@ -1,88 +1,130 @@
 const fs = require("fs");
 var customString ="";
+var option,id,name,number,baseUserArray,users  //Used globally thoughout the file
+
+function logError(serverError,clientError){ //Function that simplifies the logging of errors
+    console.log("==========================\n"+serverError);
+    customString = clientError;
+}
+
+function createUserArray(){ //Nice way to get users, we demarkate them using ';'
+    var contents = fs.readFileSync('user.txt', 'utf8');
+    users = [];
+
+    baseUserArray = contents.split(";");    //Id-Name: number
+    //load object
+    baseUserArray.forEach(el => {
+
+        var user = {
+            id : el.substring(0, el.lastIndexOf("-")),
+            name : el.substring(el.lastIndexOf("-") + 1, el.lastIndexOf(":")),
+            number : el.substring(el.lastIndexOf(":") + 1, el.length)
+        };
+        users.push(user);
+    });
+
+    //Why pop ? because a blank is always inserted at the end for some reason
+    users.pop();
+
+}
+
+exports.setParams = function setParams(...args){    //called by server to set params used in the file
+
+    option = args[0];
+    id = args[1];
+    name = args[2];
+    number = args[3];
+
+}
+function insertUser(){
+    if(name == null || number == null || name == "" || number == ""){
+        logError("Params not supplied","Please input a name and a number for the user!");
+        return;
+    }
+
+    createUserArray();
+    console.log("USERS:");
+    console.log(users);
+
+    console.log("Last:");
+    console.log(users[users.length - 1]);
+
+    var lastId = parseInt(users[users.length - 1].id) + 1;
+    console.log("Last ID:"+lastId);
+    fs.appendFile("user.txt",lastId + "-"+name+":"+number+";" , function(err) {
+        if(err) {
+            return console.log(err);
+        }                       
+    }); 
+
+    logError("The file was saved!","The user "+name+" has been inserted");
+}
+
+function display(){
+ 
+    createUserArray();
+
+    var list = "";
+
+    users.forEach(e => {
+        list += e.name + " " + e.number + "<br/>";
+    });
+
+    logError("File read",list);
+}
+
+
+function getUser(){
+    if(name == null || name == ""){
+        logError("Params not supplied","Please input a username to search");
+        return;
+    }
+    
+    createUserArray();
+    var found = false;
+    var targetUser;
+
+    users.forEach(el => {
+        if(el.name == name){
+        targetUser = el;
+        found = true;
+        }
+        
+    });
+    logError("User found",targetUser.id + "- "+targetUser.name+ " "+targetUser.number+ "<br/>");
+
+    if(found != true)
+    logError("User not found","That user was not found");
+}
+
+function deleteUser(){
+    logError("deleteUser called","");
+}
+
+function update(){
+    logError("update called","");
+}
+
 exports.getResult = function getResult(...args)//args is an array with all our arguments
 {
-    if(args[0] != null)
-    {
-        if(args[1] !=null && args[0]!= 2)
-        {
-            if(args[0]== 1)
-            {   
-                //Insert the user
-                if(args[2] != null)
-                {
-                    //Insert the user to file
-                    fs.appendFile("user.txt", "\n"+args[1]+" "+args[2] , function(err) {
-                        if(err) {
-                            return console.log(err);
-                        }                       
-                    }); 
-                    customString = "The user "+args[1]+" has been inserted";
-                    console.log("The file was saved!");
-                }
-                else{
-                    //add error message to the page saying parameters was not specify
-                }
-
-            }
-            else  if(args[0] == 3)
-            {
-                //we get user...
-                if(args[2] != null)
-                {
-                    //Get the user from file
-                }
-                else{
-                    //add error message to the page saying parameters was not specify
-                }
-
-            }else if(args[0] == 4)
-            {
-                //we delete a user
-                if(args[2] != null)
-                {
-                    //delete the user from file
-                }
-                else{
-                    //add error message to the page saying parameters was not specify
-                }
-            }else if(args[0] == 5)
-            {
-                //Update the user
-                if(args[2] != null)
-                {
-                    if(args[3] != null)
-                    {
-                        //Update the user
-                    }
-                }
-                else{
-                    //add error message to the page saying parameters was not specify
-                }
-            }
-        }
-        else if(args[0]==2){
-            //Option 2 was selected thus we just display all users
-            console.log("here");
-            var contents = fs.readFileSync('user.txt', 'utf8');
-            console.log(contents);
-            customString = contents;
-        }
+    if(args[0] == null){
+        logError("","Please select an option");
+        return;
     }
+    
+    if(args[0] == 1)
+    insertUser();
+    else if(args[0] == 2)
+    display();
+    else if(args[0] == 3)
+    getUser();
+    else if(args[0] == 4)
+    deleteUser();
+    else if(args[0] == 5)
+    update();
+
 }
-// exports.getResult = function getResult()
-// {
-//     if(arguments.length == 3)
-//     {
-//         //Option one was selected
-//         //Thus insert into file
-//     }
-//     else if(arguments.length == 1)
-//     {
-//         //Option 2 was chosen
-//         //Display all users and numbers
-//     }
-// }
+
 var pagePart1 = `<!DOCTYPE html>
 <html>
 <head>
@@ -104,13 +146,13 @@ var pagePart1 = `<!DOCTYPE html>
             <p><b>Leave input boxes empty if not applicable</b></p>
             <form action="/" method="get">
                 Option:
-                <input type="number" name='option'/>
-                Name/ID:
-                <input type="text" name='userid'/>
-                Name/Number:
-                <input type="text" name='name'/>
+                <input type="number" name='option'/> <br/> <br/>
+                ID:
+                <input type="text" name='userid'/> <br/> <br/>
+                Name:
+                <input type="text" name='name'/> <br/> <br/>
                 Number:
-                <input type="text" name='number'/>
+                <input type="text" name='number'/> <br/> 
                 <input type="submit" name="Sumbit"/>
             </form><p>`;
 var pagePart2 = `        
